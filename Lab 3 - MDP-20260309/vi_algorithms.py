@@ -47,8 +47,8 @@ class ValueIterationSolver(VISolver):
         iterations = 0
         history = None
 
-        if v_star is None:
-            v_star = np.zeros_like(self.V)
+        # if v_star is None:
+        #     v_star = np.zeros_like(self.V)
 
         if track_history:
             history = [np.linalg.norm(self.V - v_star, ord=2)]
@@ -70,7 +70,7 @@ class ValueIterationSolver(VISolver):
 
             converged = (
                 self._has_converged_to_vstar(v_star)
-                if v_star is not None
+                if v_star is not None and track_history
                 else delta < self.epsilon
             )
 
@@ -78,6 +78,7 @@ class ValueIterationSolver(VISolver):
                 print(f"Value Iteration converged after {iterations} state updates.")
                 return history if track_history else iterations
             
+        print(f"Value Iteration converged after {iterations} state updates.")
         return history if track_history else iterations
 
 class GaussSeidelValueIterationSolver(VISolver):
@@ -108,7 +109,7 @@ class GaussSeidelValueIterationSolver(VISolver):
 
             converged = (
                 self._has_converged_to_vstar(v_star)
-                if v_star is not None
+                if v_star is not None and track_history
                 else delta < self.epsilon
             )
 
@@ -197,7 +198,9 @@ class PolicyIterationSolver(VISolver):
                 print(f"Policy Iteration converged after {total_updates} state updates.")
                 return history if track_history else total_updates
             
-            self._policy_improvement() 
+            if self._policy_improvement():
+                print(f"Policy Iteration converged after {total_updates} state updates.")
+                break
             
         return history if track_history else total_updates
 
@@ -207,9 +210,9 @@ class PolicyIterationSolver(VISolver):
 
         while True:
             delta = 0
-            V_old = self.V.copy()
 
             for s in range(self.states.n):
+                v_temp = self.V[s]
                 a = self.policy[s]
                 transitions = self.game.get_probability(s, a)
 
@@ -217,7 +220,7 @@ class PolicyIterationSolver(VISolver):
 
                 sum_future_value = 0
                 for prob, next_state, reward, done in transitions:
-                    sum_future_value += prob * (0 if done else V_old[next_state])
+                    sum_future_value += prob * (0 if done else self.V[next_state])
                 
                 sum_future_value *= self.gamma
 
@@ -227,7 +230,7 @@ class PolicyIterationSolver(VISolver):
                 if track_history:
                     eval_history.append(np.linalg.norm(self.V - v_star, ord=2))
 
-                delta = max(delta, abs(V_old[s] - self.V[s]))
+                delta = max(delta, abs(v_temp - self.V[s]))
 
             if self._has_converged_to_vstar(v_star) or delta < self.epsilon:
                 break
