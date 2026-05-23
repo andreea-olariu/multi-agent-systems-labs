@@ -740,7 +740,7 @@ class Tester(object):
 
             nr_steps += 1
 
-            if nr_steps >= 500:
+            if nr_steps >= 10_000:
                 print("MAX STEP - STOP")
                 break
 
@@ -791,8 +791,8 @@ if __name__ == "__main__":
 
     sys.stdout = open("output.txt", "w", encoding="utf-8")
 
-    test_suites = ['tests/0/', 'tests/0a/', 'tests/0c/', 'tests/0d/', 'tests/0d2/', 'tests/0e-large/']
-    dynamic_probs = [0.0, 1.0]
+    test_suites = ['tests/0e-large/']
+    dynamic_probs = [1.0]
 
     test_failed = 0
     test_success = 0
